@@ -1,0 +1,29 @@
+PROJECT(CS474)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules")
+SET(CXX11_FLAGS -std=gnu++11)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_FLAGS}")
+SET(TARGET_LIBRARIES "${OPENGL_LIBRARY} ${SDL2_LIBRARY}")
+
+IF(UNIX)
+  ADD_DEFINITIONS(-DUNIX)
+ENDIF(UNIX)
+
+# Set Includes
+SET(INCLUDES ${PROJECT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${INCLUDES})
+
+# Set sources
+FILE(GLOB_RECURSE SOURCES "src/*.cpp")
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES})
+
+add_custom_target("${PROJECT_NAME}_SUCCESSFUL" ALL
+                  DEPENDS ${PROJECT_NAME}
+                  COMMAND ${CMAKE_COMMAND} -E echo ""
+                  COMMAND ${CMAKE_COMMAND} -E echo "====================="
+                  COMMAND ${CMAKE_COMMAND} -E echo "  Compile complete!"
+                  COMMAND ${CMAKE_COMMAND} -E echo "====================="
+                  COMMAND ${CMAKE_COMMAND} -E echo "${CMAKE_CURRENT_BINARY_DIR}"
+                 )
+
