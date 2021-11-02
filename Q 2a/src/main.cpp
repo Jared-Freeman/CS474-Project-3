@@ -24,6 +24,7 @@ std::string output_path = "../images";
 int ClampPxVal(int val, int lo, int hi);
 void PrintHistogram(std::map<int, float> hist);
 void WriteImageToFile(std::string filename, ImageType& img);
+void generateTestImage(int size, float** arr, int innerSize);
 
 void fft(float data[], unsigned long nn, int isign);
 void printArrayReal(float arr[], int SIZE);
@@ -155,6 +156,23 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
     }
     }
   }
+}
+
+void generateTestImage(int size, float** arr, int innerSize)
+{
+  int leftBound = ((size/2) - (innerSize/2));
+  int upperBound = ((size/2) - (innerSize/2));
+  int rightBound = ((size/2) + (innerSize/2)) -1;
+  int lowerBound = ((size/2) + (innerSize/2)) -1;
+
+  for (int i = 0; i < size; i++)
+    for (int j = 0; j < size; j++)
+    {
+      if ( (i >= upperBound && i <= lowerBound) && (j >= leftBound && j <= rightBound) )
+        arr[i][j] = 255;
+      else
+        arr[i][j] = 0;
+    }
 }
 
 void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
