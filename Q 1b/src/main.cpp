@@ -56,7 +56,7 @@ int main()
 
 void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
 {
-	// std::cout << "WRITING TO FILE\n";
+	std::cout << "Writing DFT values as .csv files in directory: " << filepath << "\n";
 
   std::ofstream os;
   os.open (filepath + "/DFT_Real.csv");
@@ -83,7 +83,6 @@ void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
   while (i < SIZE)
   {
     os << atan2(arr[i], arr[i+1]); 
-    // |F(u)| = sqrt (R(u)^2 + I(u)^2)
 
     i += 2;
     os << "\n";

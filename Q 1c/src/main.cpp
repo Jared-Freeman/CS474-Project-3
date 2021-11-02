@@ -6,6 +6,7 @@
 #define PI 3.14159265
 
 std::string output_path = "../DFT_Data";
+std::string rect_input_path = "../data/Rect_128.dat";
 
 void fft(float data[], unsigned long nn, int isign);
 void printArrayReal(float arr[], int SIZE);
@@ -25,10 +26,12 @@ int main()
   {
     testArr[i] = 0;
   }
-  // Sample cos function cos(2 * pi * 8 * x)
-  for(int i=0; i < N; i++)
+  // Read in sampled rect fn
+  std::ifstream f_in;
+  f_in.open(rect_input_path);
   {
-    testArr[2 * i + 1] = cos(16.0 * PI * ((double)i * .125 / N));
+    int k=0;
+    while(f_in >> testArr[k++]);
   }
 
   // printArrayReal(testArr, SIZE);
@@ -48,7 +51,7 @@ int main()
 
   fft(testArr, realCount, 1); // inverse fft
   
-  printArrayReal(testArr, SIZE);
+  // printArrayReal(testArr, SIZE);
 
 
   return 0;
@@ -56,7 +59,7 @@ int main()
 
 void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
 {
-	// std::cout << "WRITING TO FILE\n";
+	std::cout << "Writing DFT values as .csv files in directory: " << filepath << "\n";
 
   std::ofstream os;
   os.open (filepath + "/DFT_Real.csv");
@@ -83,7 +86,6 @@ void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
   while (i < SIZE)
   {
     os << atan2(arr[i], arr[i+1]); 
-    // |F(u)| = sqrt (R(u)^2 + I(u)^2)
 
     i += 2;
     os << "\n";
