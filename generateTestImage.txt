@@ -1,0 +1,29 @@
+void generateTestImage(int size, float** arr, int innerSize)
+{
+  int leftBound = ((size/2) - (innerSize/2));
+  int upperBound = ((size/2) - (innerSize/2));
+  int rightBound = ((size/2) + (innerSize/2)) -1;
+  int lowerBound = ((size/2) + (innerSize/2)) -1;
+
+  for (int i = 0; i < size; i++)
+    for (int j = 0; j < size; j++)
+    {
+      if ( (i >= upperBound && i <= lowerBound) && (j >= leftBound && j <= rightBound) )
+        arr[i][j] = 255;
+      else
+        arr[i][j] = 0;
+    }
+}
+
+
+// IN MAIN:
+
+const int TEST_SIZE = 512;
+int whiteSquare = 32;
+float** testImage;
+testImage = new float* [TEST_SIZE];
+
+for (int i = 0; i < TEST_SIZE; i++)
+	testImage[i] = new float[TEST_SIZE];
+
+generateTestImage(TEST_SIZE, testImage, whiteSquare);
