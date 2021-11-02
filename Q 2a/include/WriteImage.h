@@ -22,7 +22,7 @@ int writeImage(char fname[], ImageType& image)
 
  // convert the integer values to unsigned char
 
- int val;
+ double val;
 
  for(i=0; i<N; i++)
    for(j=0; j<M; j++) {

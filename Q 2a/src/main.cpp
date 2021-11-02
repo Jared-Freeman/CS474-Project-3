@@ -10,7 +10,6 @@
 #include "image.h"
 #include "WriteImage.h"
 #include "ReadImage.h"
-#include "Mask.h"
 #include "freeman_arg_parse.h" //A small utility I wrote for extracting command line args.
 
 #define SWAP(a,b) tempr=(a);(a)=(b);(b)=tempr
@@ -51,6 +50,13 @@ int main()
   generateTestImage(TEST_SIZE, testImage, whiteSquare);
 
   ImageType img_real(TEST_SIZE, TEST_SIZE, 256);
+  for(int i=0; i<TEST_SIZE; i++)
+  {
+    for(int j=0; j<TEST_SIZE; j++)
+    {
+      img_real.setPixelVal(i,j,testImage[i][j]);
+    }
+  }
   ImageType img_imag;
   img_imag.CopyImageData(img_real);
   for(int i=0; i<TEST_SIZE; i++)
@@ -60,6 +66,7 @@ int main()
       img_imag.setPixelVal(i,j,0);
     }
   }
+  WriteImageToFile(output_path + "/test_image_raw.pgm", img_real);
 
   //2d fft
 
