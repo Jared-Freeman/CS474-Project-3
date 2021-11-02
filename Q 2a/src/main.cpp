@@ -24,7 +24,7 @@ std::string output_path = "../images";
 int ClampPxVal(int val, int lo, int hi);
 void PrintHistogram(std::map<int, float> hist);
 void WriteImageToFile(std::string filename, ImageType& img);
-void generateTestImage(int size, float** arr, int innerSize);
+void generateTestImage(int size, double** arr, int innerSize);
 
 void fft(float data[], unsigned long nn, int isign);
 void printArrayReal(float arr[], int SIZE);
@@ -39,6 +39,27 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
 int main() 
 {
   //create test image. create empty imaginary image object (init vals to 0)
+
+  const int TEST_SIZE = 512;
+  int whiteSquare = 32;
+  double** testImage;
+  testImage = new double* [TEST_SIZE];
+
+  for (int i = 0; i < TEST_SIZE; i++)
+    testImage[i] = new double[TEST_SIZE];
+
+  generateTestImage(TEST_SIZE, testImage, whiteSquare);
+
+  ImageType img_real(TEST_SIZE, TEST_SIZE, 256);
+  ImageType img_imag;
+  img_imag.CopyImageData(img_real);
+  for(int i=0; i<TEST_SIZE; i++)
+  {
+    for(int j=0; j<TEST_SIZE; j++)
+    {
+      img_imag.setPixelVal(i,j,0);
+    }
+  }
 
   //2d fft
 
@@ -158,7 +179,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
   }
 }
 
-void generateTestImage(int size, float** arr, int innerSize)
+void generateTestImage(int size, double** arr, int innerSize)
 {
   int leftBound = ((size/2) - (innerSize/2));
   int upperBound = ((size/2) - (innerSize/2));

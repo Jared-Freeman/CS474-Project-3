@@ -67,7 +67,7 @@ void ImageType::setImageInfo(int rows, int cols, int levels)
  Q= levels;
 } 
 
-void ImageType::setPixelVal(int i, int j, int val)
+void ImageType::setPixelVal(int i, int j, double val)
 {
  pixelValue[i][j] = val;
 }

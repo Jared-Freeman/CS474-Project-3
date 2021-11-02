@@ -13,7 +13,7 @@ class ImageType {
    ~ImageType();
    void getImageInfo(int&, int&, int&);
    void setImageInfo(int, int, int);
-   void setPixelVal(int, int, int);
+   void setPixelVal(int, int, double);
    void getPixelVal(int, int, double&);
       
    void ClearImageData()
