@@ -11,17 +11,15 @@
 #include "WriteImage.h"
 #include "ReadImage.h"
 #include "Mask.h"
-
 #include "freeman_arg_parse.h" //A small utility I wrote for extracting command line args.
-
-bool FLAG_DEBUG = true;
-
 
 #define SWAP(a,b) tempr=(a);(a)=(b);(b)=tempr
 #define PI 3.14159265
 
-std::string output_path = "../DFT_Data";
-std::string rect_input_path = "../data/Rect_128.dat";
+bool FLAG_DEBUG = true;
+
+std::string output_path = "../images";
+// std::string image_input_path = "../images/";
 
 int ClampPxVal(int val, int lo, int hi);
 void PrintHistogram(std::map<int, float> hist);
@@ -39,22 +37,12 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
 
 int main() 
 {
-  const unsigned int N = 128;
+  //create test image. create empty imaginary image object (init vals to 0)
 
-  const unsigned int SIZE = 2 * N + 1;
-  int realCount = N; // quantity of real values in array
-  float testArr[SIZE];
-  for(int i=0; i < SIZE; i++)
-  {
-    testArr[i] = 0;
-  }
-  // Read in sampled rect fn
-  std::ifstream f_in;
-  f_in.open(rect_input_path);
-  {
-    int k=0;
-    while(f_in >> testArr[k++]);
-  }
+  //2d fft
+
+
+
 
 
   // fft(testArr, realCount, -1); // forward fft
