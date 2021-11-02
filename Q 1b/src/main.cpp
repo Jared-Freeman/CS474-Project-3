@@ -31,8 +31,8 @@ int main()
     testArr[2 * i + 1] = cos(16.0 * PI * ((double)i * .125 / N));
   }
 
-  printArrayReal(testArr, SIZE);
-  printArrayImag(testArr, SIZE);
+  // printArrayReal(testArr, SIZE);
+  // printArrayImag(testArr, SIZE);
 
   fft(testArr, realCount, -1); // forward fft
   // should be: [13/4, 1/4 (-2 + j), -1/4, -1/4 (2 + j)]
@@ -40,9 +40,9 @@ int main()
   normalizeArray(testArr, realCount, SIZE);
   DFT_WriteToCSV(testArr, SIZE, output_path);
 
-  printArrayReal(testArr, SIZE);
-  printArrayImag(testArr, SIZE);
-  printMagnitude(testArr, SIZE);
+  // printArrayReal(testArr, SIZE);
+  // printArrayImag(testArr, SIZE);
+  // printMagnitude(testArr, SIZE);
 
   //Save DFT Data (aka magnitude, real, imaginary, phase later)
 
@@ -72,6 +72,17 @@ void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
   while (i < SIZE)
   {
     os << sqrt(pow(arr[i], 2) + pow(arr[i+1], 2)); 
+    // |F(u)| = sqrt (R(u)^2 + I(u)^2)
+
+    i += 2;
+    os << "\n";
+  }
+  os.close();
+  os.open (filepath + "/DFT_Phase.csv");
+  i = 1;
+  while (i < SIZE)
+  {
+    os << atan2(arr[i], arr[i+1]); 
     // |F(u)| = sqrt (R(u)^2 + I(u)^2)
 
     i += 2;
