@@ -24,6 +24,8 @@ int ClampPxVal(int val, int lo, int hi);
 void WriteImageToFile(std::string filename, ImageType& img);
 void generateTestImage(int size, double** arr, int innerSize);
 
+int ProcessTestImages(int argc, char** argv);
+
 void fft(double data[], unsigned long nn, int isign);
 void printArrayReal(double arr[], int SIZE);
 void printArrayImag(double arr[], int SIZE);
@@ -34,9 +36,11 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath);
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
 
 
-int main() 
+int main(int argc, char** argv) 
 {
   //create test image. create empty imaginary image object (init vals to 0)
+
+  //Test using generated test image ////////////////////////////////////////////////
 
   const int TEST_SIZE = 16;
   int whiteSquare = 4;
@@ -71,27 +75,17 @@ int main()
   }
 
   WriteImageToFile(output_path + "/test_image_raw.pgm", img_real);
-
   //2d ffts:
   //forward t
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, -1);
-
   WriteImageToFile(output_path + "/test_image_real_frequency_domain.pgm", img_real);
-
   //backward t
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, 1);
-
-
   WriteImageToFile(output_path + "/test_image_fwd_bck_transformed.pgm", img_real);
 
 
-  // fft(testArr, realCount, -1); // forward fft
-  // normalizeArray(testArr, realCount, SIZE);
-  // //Save DFT Data (aka magnitude, real, imaginary, phase)
-  // DFT_WriteToCSV(testArr, SIZE, output_path);
-  // fft(testArr, realCount, 1); // inverse fft
-
-
+  // Test using input file: ////////////////////////////////////////////////
+  ProcessTestImages(argc, argv);
 
   return 0;
 }
@@ -411,6 +405,105 @@ int ClampPxVal(int val, int lo, int hi)
   if(val < lo) return lo;
   else if (val > hi) return hi;
   else return val;
+}
+
+
+int ProcessTestImages(int argc, char** argv)
+{
+  //TODO: Print description of process to console (per program)
+
+  //Extract args into vector
+  std::vector<std::string> args;
+  for(int i=1; i < argc; i++)
+  {
+    std::string next_element(argv[i]);  
+    args.push_back(next_element);
+  }
+  
+	//Fill data structures using args
+  std::vector<std::string> imagePaths = ExtractArgs("-in", args);
+  std::vector<std::string> outputPaths = ExtractArgs("-out", args);
+  if(outputPaths.size() > 0 && outputPaths[0].length() > 0)
+  {
+    if(outputPaths[0][outputPaths[0].length()-1] != '/')
+    {
+      outputPaths[0] = outputPaths[0] + "/";
+      //std::cout << outputPaths[0] << "\n";
+    }
+  }
+  if(outputPaths.size() > 0)
+  {
+    std::cout << "Output paths specification is currently disabled for this program. Instead change the string \"output_path\" in main.cpp.\n";
+  }  
+  
+    
+  //Process each image
+  for(int i=0; i < imagePaths.size(); i++)
+  {
+    std::cout << "_________________________\n";
+    std::cout << "image " << i << ": \"" << imagePaths[i] << "\"\n";
+    
+    ImageType next_image;
+    char *cstr = new char[imagePaths[i].length() + 1];
+    strcpy(cstr, imagePaths[i].c_str());
+    std::readImage(cstr, next_image);
+
+    // DO STUFF
+    int N,M,Q;
+    next_image.getImageInfo(N,M,Q);
+
+    ImageType img_imag;
+    img_imag.CopyImageData(next_image);
+    for(int i=0; i<N; i++)
+    {
+      for(int j=0; j<M; j++)
+      {
+        img_imag.setPixelVal(i,j,0);
+      }
+    }
+
+
+    // GENERATE OUTPUT FILENAME CONVENTION
+    //determine original file name from path string
+    std::string original_filename = "";
+    for(int l = imagePaths[i].length(); imagePaths[i][l] != '/' && l >= 0; l--)
+    {
+      if(imagePaths[i][l] != '/')
+      {
+        //std::cout << imagePaths[i][l] << std::endl;
+
+        std::string temp;
+        temp += imagePaths[i][l];
+        original_filename.insert(0, temp);
+      }
+      //throw out extension
+      if(imagePaths[i][l] == '.')
+      {
+        original_filename = "";
+      }
+    }      
+    std::string out_file = output_path + "/" + original_filename;
+
+
+    WriteImageToFile(out_file + "_test_image_raw.pgm", next_image);
+    //2d ffts:
+    //forward t
+    fft2D(N, M, next_image, img_imag, -1);
+    WriteImageToFile(out_file + "_test_image_real_frequency_domain.pgm", next_image);
+    //backward t
+    fft2D(N, M, next_image, img_imag, 1);
+    WriteImageToFile(out_file + "_test_image_fwd_bck_transformed.pgm", next_image);
+
+    // END DO STUFF
+
+
+
+    delete [] cstr;
+
+    std::cout << "\n";
+  }
+  
+  return 0;
 }
 
 #undef SWAP
