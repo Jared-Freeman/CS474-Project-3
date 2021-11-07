@@ -21,16 +21,15 @@ std::string output_path = "../images";
 // std::string image_input_path = "../images/";
 
 int ClampPxVal(int val, int lo, int hi);
-void PrintHistogram(std::map<int, float> hist);
 void WriteImageToFile(std::string filename, ImageType& img);
 void generateTestImage(int size, double** arr, int innerSize);
 
-void fft(float data[], unsigned long nn, int isign);
-void printArrayReal(float arr[], int SIZE);
-void printArrayImag(float arr[], int SIZE);
-void normalizeArray(float arr[], int valCount, int size);
-void printMagnitude(float arr[], int size);
-void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath);
+void fft(double data[], unsigned long nn, int isign);
+void printArrayReal(double arr[], int SIZE);
+void printArrayImag(double arr[], int SIZE);
+void normalizeArray(double arr[], int valCount, int size);
+void printMagnitude(double arr[], int size);
+void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath);
 
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
 
@@ -39,8 +38,8 @@ int main()
 {
   //create test image. create empty imaginary image object (init vals to 0)
 
-  const int TEST_SIZE = 512;
-  int whiteSquare = 32;
+  const int TEST_SIZE = 16;
+  int whiteSquare = 4;
   double** testImage;
   testImage = new double* [TEST_SIZE];
 
@@ -97,10 +96,13 @@ int main()
   return 0;
 }
 
+//TODO: PROBABLY only works if N==M currently.
+//Need to double check all ranges and uses of those vars to ensure they're correct
+//Also the work array would need to be resized (SIZE == 2N + 1) for the columns fft
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign)
 {
   unsigned int SIZE = 2 * M + 1;
-  float *arr = new float[SIZE];
+  double *arr = new double[SIZE];
 
 
   for(int k=0; k<SIZE; k++) arr[k] = 0.0f;
@@ -112,7 +114,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
     // std::cout << i << std::endl;
 
     //load values into work array
-    float* ptr_r = arr;
+    double* ptr_r = arr;
     ptr_r += 1;
     for(int j=0, k=1, l=2; j<M; j++, k+=2, l+=2)
     {
@@ -120,7 +122,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
       i_real.getPixelVal(i,j,real); 
       i_imag.getPixelVal(i,j,imag);
 
-      // *ptr_r = (float)real;
+      // *ptr_r = (double)real;
       // ptr_r += 2;
       arr[k] = real;
       arr[l] = imag;
@@ -143,6 +145,10 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
       double real, imag;
       real = arr[2 * j + 1];
       imag = arr[2 * j + 2];
+
+      if(isign < 0) real /= N;
+      if(isign < 0) imag /= N;
+
       i_real.setPixelVal(i,j,real);
       i_imag.setPixelVal(i,j,imag);
     }
@@ -162,12 +168,27 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
       double real, imag;
       i_real.getPixelVal(i,j,real);
       i_imag.getPixelVal(i,j,imag);
+
+
+      if(isign < 0) real /= N;
+      if(isign < 0) imag /= N;
+
       arr[k] = real;
       arr[l] = imag;
     }
 
     //compute dft (column)
     fft(arr, N, isign);
+
+
+      // if(i==255) std::cout << real << " ";
+      // if(true)
+      // {
+      //   printArrayReal(arr, SIZE);
+      //   printArrayImag(arr, SIZE);
+      //   std::cout << std::endl;
+      // }
+
 
     //copy values back into image col   
     for(int i=0; i<N; i++) 
@@ -182,7 +203,8 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
     for(int k=0; k<SIZE; k++) arr[k] = 0;
   }
 
-  // return;
+
+  return;
 
   //TODO: reenable
   if(isign < 0)
@@ -250,7 +272,7 @@ void generateTestImage(int size, double** arr, int innerSize)
   }
 }
 
-void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
+void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
 {
 	std::cout << "Writing DFT values as .csv files in directory: " << filepath << "\n";
 
@@ -286,7 +308,7 @@ void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
   os.close();
 }
 
-void printArrayReal(float arr[], int SIZE)
+void printArrayReal(double arr[], int SIZE)
 {
   std::cout << "Array, real components: \n";
   for (int i = 1; i < SIZE; i = i + 2)
@@ -294,7 +316,7 @@ void printArrayReal(float arr[], int SIZE)
   std::cout << "\n\n";
 }
 
-void printArrayImag(float arr[], int SIZE)
+void printArrayImag(double arr[], int SIZE)
 {
   std::cout << "Array, imagninary components: \n";
   for (int i = 2; i < SIZE; i = i + 2)
@@ -302,11 +324,11 @@ void printArrayImag(float arr[], int SIZE)
   std::cout << "\n\n";
 }
 
-void fft(float data[], unsigned long nn, int isign)
+void fft(double data[], unsigned long nn, int isign)
 {
 	unsigned long n,mmax,m,j,istep,i;
 	double wtemp,wr,wpr,wpi,wi,theta;
-	float tempr,tempi;
+	double tempr,tempi;
 
 	n=nn << 1;
 	j=1;
@@ -349,13 +371,13 @@ void fft(float data[], unsigned long nn, int isign)
 }
 
 
-void normalizeArray(float arr[], int valCount, int SIZE)
+void normalizeArray(double arr[], int valCount, int SIZE)
 {
   for (int i = 0; i < SIZE; i++)
     arr[i] = arr[i] * 1/valCount;
 }
 
-void printMagnitude(float arr[], int size)
+void printMagnitude(double arr[], int size)
 {
   int i = 1;
   std::cout << "Magnitude of array: \n";
@@ -370,14 +392,6 @@ void printMagnitude(float arr[], int size)
   std::cout << "\n\n";
 }
 
-void PrintHistogram(std::map<int, float> hist)
-{
-  for(auto it : hist)
-  {
-    std::cout << it.first << " " << it.second << std::endl;
-  }
-  std::cout << std::endl;
-}
 
 void WriteImageToFile(std::string filename, ImageType& img)
 {
