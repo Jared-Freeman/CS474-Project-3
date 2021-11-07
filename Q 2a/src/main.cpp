@@ -32,7 +32,7 @@ void normalizeArray(float arr[], int valCount, int size);
 void printMagnitude(float arr[], int size);
 void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath);
 
-void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, int isign);
+void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
 
 
 int main() 
@@ -49,14 +49,18 @@ int main()
 
   generateTestImage(TEST_SIZE, testImage, whiteSquare);
 
-  ImageType img_real(TEST_SIZE, TEST_SIZE, 256);
+  ImageType img_real(TEST_SIZE, TEST_SIZE, 255);
   for(int i=0; i<TEST_SIZE; i++)
   {
     for(int j=0; j<TEST_SIZE; j++)
     {
       img_real.setPixelVal(i,j,testImage[i][j]);
+
+      double val;
+      img_real.getPixelVal(i,j,val);
     }
   }
+
   ImageType img_imag;
   img_imag.CopyImageData(img_real);
   for(int i=0; i<TEST_SIZE; i++)
@@ -66,12 +70,20 @@ int main()
       img_imag.setPixelVal(i,j,0);
     }
   }
+
   WriteImageToFile(output_path + "/test_image_raw.pgm", img_real);
 
-  //2d fft
+  //2d ffts:
+  //forward t
+  fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, -1);
+
+  WriteImageToFile(output_path + "/test_image_real_frequency_domain.pgm", img_real);
+
+  //backward t
+  fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, 1);
 
 
-
+  WriteImageToFile(output_path + "/test_image_fwd_bck_transformed.pgm", img_real);
 
 
   // fft(testArr, realCount, -1); // forward fft
@@ -85,28 +97,45 @@ int main()
   return 0;
 }
 
-void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, int isign)
+void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign)
 {
-  unsigned int SIZE = N * M + 1;
-  float arr[SIZE];
-  for(int k=0; k<SIZE; k++) arr[k] = 0;
+  unsigned int SIZE = 2 * M + 1;
+  float *arr = new float[SIZE];
+
+
+  for(int k=0; k<SIZE; k++) arr[k] = 0.0f;
 
 
   //compute rows
   for(int i=0; i<N; i++)
   {
+    // std::cout << i << std::endl;
+
     //load values into work array
-    for(int j=0; j<M; j++)
+    float* ptr_r = arr;
+    ptr_r += 1;
+    for(int j=0, k=1, l=2; j<M; j++, k+=2, l+=2)
     {
       double real, imag;
-      i_real.getPixelVal(i,j,real);
+      i_real.getPixelVal(i,j,real); 
       i_imag.getPixelVal(i,j,imag);
-      arr[2 * j + 1] = real;
-      arr[2 * j + 2] = imag;
+
+      // *ptr_r = (float)real;
+      // ptr_r += 2;
+      arr[k] = real;
+      arr[l] = imag;
+
+      // if(i==255) std::cout << real << " ";
+      // if(i == 255 && j==N-1)
+      // {
+      //   for(int b=0; b<50; b++) {std::cout << arr[b] << " ";}
+      //   printArrayReal(arr, SIZE);
+      //   printArrayImag(arr, SIZE);
+      // }
     }
 
-    //compute dft
-    fft(arr, SIZE, isign);
+    //compute dft (row)
+    fft(arr, M, isign);
 
     //copy values back into image row
     for(int j=0; j<M; j++)
@@ -118,6 +147,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
       i_imag.setPixelVal(i,j,imag);
     }
 
+
     //clear work array    
     for(int k=0; k<SIZE; k++) arr[k] = 0;
   }
@@ -127,24 +157,24 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
   for(int j=0; j<M; j++)
   {
     //load values into work array
-    for(int i=0; i<N; i++)
+    for(int i=0, k=1, l=2; i<N; i++, k+=2, l+=2)
     {
       double real, imag;
       i_real.getPixelVal(i,j,real);
       i_imag.getPixelVal(i,j,imag);
-      arr[2 * j + 1] = real;
-      arr[2 * j + 2] = imag;
+      arr[k] = real;
+      arr[l] = imag;
     }
 
-    //compute dft
-    fft(arr, SIZE, isign);
+    //compute dft (column)
+    fft(arr, N, isign);
 
     //copy values back into image col   
     for(int i=0; i<N; i++) 
     {
       double real, imag;
-      real = arr[2 * j + 1];
-      imag = arr[2 * j + 2];
+      real = arr[2 * i + 1];
+      imag = arr[2 * i + 2];
       i_real.setPixelVal(i,j,real);
       i_imag.setPixelVal(i,j,imag);
     }
@@ -152,7 +182,9 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
     for(int k=0; k<SIZE; k++) arr[k] = 0;
   }
 
-  //normalize after operations? during?
+  // return;
+
+  //TODO: reenable
   if(isign < 0)
   {
     for(int i=0; i<N; i++) 
@@ -171,7 +203,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
       }
 
       //normalize
-      normalizeArray(arr, M, SIZE);   
+      normalizeArray(arr, N*M, SIZE);   
 
       //copy back into image storage
       for(int j=0; j<M; j++)
@@ -184,6 +216,8 @@ void fft2D(unsigned int N, unsigned int M, ImageType i_real, ImageType i_imag, i
     }
     }
   }
+
+  delete [] arr;
 }
 
 void generateTestImage(int size, double** arr, int innerSize)
@@ -193,7 +227,19 @@ void generateTestImage(int size, double** arr, int innerSize)
   int rightBound = ((size/2) + (innerSize/2)) -1;
   int lowerBound = ((size/2) + (innerSize/2)) -1;
 
+  // DEBUG ///////////////////////////////////////////
+  // for(int i=0; i<size; i++)
+  // {
+  //   for (int j = 0; j < size; j++)
+  //   {
+  //     arr[i][j] = 255;
+  //     // std::cout << i << ", " << j << ", val: " ;
+  //     // std::cout << arr[i][j] << " | ";
+  //   }
+  // }
+
   for (int i = 0; i < size; i++)
+  {
     for (int j = 0; j < size; j++)
     {
       if ( (i >= upperBound && i <= lowerBound) && (j >= leftBound && j <= rightBound) )
@@ -201,6 +247,7 @@ void generateTestImage(int size, double** arr, int innerSize)
       else
         arr[i][j] = 0;
     }
+  }
 }
 
 void DFT_WriteToCSV(float arr[], int SIZE, std::string filepath)
