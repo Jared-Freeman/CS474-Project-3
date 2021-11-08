@@ -17,7 +17,7 @@
 
 bool FLAG_DEBUG = true;
 
-std::string output_path = "C:\\Users\\Adam\\source\\repos\\CS474-Project-3\\Q 3b\\images";
+std::string output_path = "C:\\Users\\Adam\\source\\repos\\CS474-Project-3\\Q 3a\\images";
 // std::string image_input_path = "../images/";
 
 int ClampPxVal(int val, int lo, int hi);
@@ -36,7 +36,7 @@ void computeMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageTy
 void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign);
 void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag);
 
-void zeroMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag);
+void zeroPhase(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag);
 
 // NOTES: This program does NOT check if images have power-of-two dimensions. 
 //        fft() will only work under these conditions.
@@ -101,13 +101,13 @@ int main(int argc, char** argv)
     fft2D(N, M, img_real, img_imag, -1);
     //WriteImageToFile(output_path + "\\test_image_real_frequency_domain.pgm", img_real);
     computeMagnitude(N, M, img_real, img_imag, img_mag);
-
-
+    
+    
     //stretchMagnitude(N, M, img_mag);
     //WriteImageToFile(output_path + "\\lenna_mag_stretched.pgm", img_mag);
 
-    zeroMagnitude(N, M, img_real, img_imag);
-    WriteImageToFile(output_path + "\\lenna_zeroMagnitude.pgm", img_real);
+    zeroPhase(N, M, img_real, img_imag, img_mag);
+    WriteImageToFile(output_path + "\\lenna_zeroPhase.pgm", img_real);
 
     //shiftToCenter(N, M, img_mag, 1); // 0 for image, 1 for FT
     //WriteImageToFile(output_path + "\\test_image_magnitude_shifted.pgm", img_mag);
@@ -119,8 +119,6 @@ int main(int argc, char** argv)
 
     //backward t
     fft2D(N, M, img_real, img_imag, 1);
-
-    img_real.RemapPixelValues(); // rescale to [0, 255]
 
     WriteImageToFile(output_path + "\\lenna_fwd_bck_transformed.pgm", img_real);
 
@@ -652,20 +650,16 @@ void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag)
     // re-scale |D(u, v)| to range [0, 255]
 }
 
-void zeroMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag)
+void zeroPhase(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag)
 {
-    double Q_real, Q_imag, theta;
-
+    double Q;
     for (int u = 0; u < N; u++)
     {
         for (int v = 0; v < M; v++)
         {
-            i_real.getPixelVal(u, v, Q_real);
-            i_imag.getPixelVal(u, v, Q_imag);
-            theta = atan2(Q_imag, Q_real);
-
-            i_real.setPixelVal(u, v, cos(theta));
-            i_imag.setPixelVal(u, v, sin(theta));
+            i_mag.getPixelVal(u, v, Q);
+            i_real.setPixelVal(u, v, Q);
+            i_imag.setPixelVal(u, v, 0);
         }
     }
 }
