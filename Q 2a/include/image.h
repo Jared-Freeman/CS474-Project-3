@@ -15,6 +15,8 @@ class ImageType {
    void setImageInfo(int, int, int);
    void setPixelVal(int, int, double);
    void getPixelVal(int, int, double&);
+
+   void RemapPixelValues();
       
    void ClearImageData()
    {

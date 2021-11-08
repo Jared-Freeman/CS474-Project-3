@@ -1,0 +1,4 @@
+C:/Users/Adam/source/repos/CS474-Project-3/Q 2a/out/build/x64-Debug (default)/CMakeFiles/CS474.dir
+C:/Users/Adam/source/repos/CS474-Project-3/Q 2a/out/build/x64-Debug (default)/CMakeFiles/CS474_SUCCESSFUL.dir
+C:/Users/Adam/source/repos/CS474-Project-3/Q 2a/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+C:/Users/Adam/source/repos/CS474-Project-3/Q 2a/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
