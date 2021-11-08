@@ -197,41 +197,6 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
   }
 
   return;
-
-  //TODO: reenable
-  if(isign < 0)
-  {
-    for(int i=0; i<N; i++) 
-    {
-      //clear work array
-      for(int k=0; k<SIZE; k++) arr[k] = 0;
-
-      //copy into work array
-      for(int j=0; j<M; j++)
-        {
-        double real, imag;
-        real = arr[2 * j + 1];
-        imag = arr[2 * j + 2];
-        i_real.setPixelVal(i,j,real);
-        i_imag.setPixelVal(i,j,imag);        
-      }
-
-      //normalize
-      normalizeArray(arr, N*M, SIZE);   
-
-      //copy back into image storage
-      for(int j=0; j<M; j++)
-      {
-      double real, imag;
-      real = arr[2 * j + 1];
-      imag = arr[2 * j + 2];
-      i_real.setPixelVal(i,j,real);
-      i_imag.setPixelVal(i,j,imag);
-    }
-    }
-  }
-
-  delete [] arr;
 }
 
 void generateTestImage(int size, double** arr, int innerSize)
@@ -450,8 +415,6 @@ int ProcessTestImages(int argc, char** argv)
     WriteImageToFile(out_file + "_test_image_fwd_bck_transformed.pgm", next_image);
 
     // END DO STUFF
-
-
 
     delete [] cstr;
 
