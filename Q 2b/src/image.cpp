@@ -77,4 +77,34 @@ void ImageType::getPixelVal(int i, int j, double& val)
  val = pixelValue[i][j];
 }
 
+void ImageType::RemapPixelValues()
+{
+    //get min and max from pxvals
+    int max = -2147483647;
+    int min = 2147483647;
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            double val;
+            getPixelVal(i, j, val);
+            if (val > max) max = val;
+            if (val < min) min = val;
+        }
+    }
 
+    double slope = ((double)Q) / ((double)max - (double)min);
+
+    // std::cout << "SLOPE: " << slope << std::endl;
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            double val;
+            getPixelVal(i, j, val);
+            int output = slope * (val - min);
+            setPixelVal(i, j, output);
+        }
+    }
+}

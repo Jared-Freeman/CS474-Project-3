@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstring>
 #include <map>
-#include <math.h>
+//#include <math.h>
 
 #include "image.h"
 #include "WriteImage.h"
@@ -18,6 +18,7 @@
 bool FLAG_DEBUG = true;
 
 std::string output_path = "../images";
+// std::string output_path = "C:\\Users\\Adam\\source\\repos\\CS474-Project-3\\Q 2a\\images";
 // std::string image_input_path = "../images/";
 
 int ClampPxVal(int val, int lo, int hi);
@@ -34,6 +35,9 @@ void printMagnitude(double arr[], int size);
 void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath);
 
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
+void computeMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag);
+void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign); 
+void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag);
 
 // NOTES: This program does NOT check if images have power-of-two dimensions. 
 //        fft() will only work under these conditions.
@@ -44,8 +48,8 @@ int main(int argc, char** argv)
 
   //Test using generated test image ////////////////////////////////////////////////
 
-  const int TEST_SIZE = 128;
-  int whiteSquare = 64;
+  const int TEST_SIZE = 512;
+  int whiteSquare = 32;
 
   
   double** testImage;
@@ -78,14 +82,61 @@ int main(int argc, char** argv)
     }
   }
 
+  // Magnitude
+  ImageType img_mag;
+  ImageType img_mag_shifted;
+  img_mag.CopyImageData(img_real);
+
   WriteImageToFile(output_path + "/test_image_raw.pgm", img_real);
+  // WriteImageToFile(output_path + "\\test_image_raw.pgm", img_real);
   //2d ffts:
   //forward t
+  //shiftToCenter(TEST_SIZE, TEST_SIZE, img_real, img_imag, img_mag, 0); // 0 for image, 1 for FT
+
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, -1);
   WriteImageToFile(output_path + "/test_image_real_frequency_domain.pgm", img_real);
+  // WriteImageToFile(output_path + "\\test_image_real_frequency_domain.pgm", img_real);
+
+  
+  computeMagnitude(TEST_SIZE, TEST_SIZE, img_real, img_imag, img_mag);
+  ImageType img_mag_2;
+  img_mag_2.CopyImageData(img_mag);
+  // stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_2);
+  WriteImageToFile(output_path + "/test_image_magnitude_raw.pgm", img_mag_2);
+  // WriteImageToFile(output_path + "\\test_image_magnitude_raw.pgm", img_mag);
+
+  img_mag_shifted.CopyImageData(img_mag);
+  shiftToCenter(TEST_SIZE, TEST_SIZE, img_mag_shifted, 1); // 0 for image, 1 for FT
+  stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_shifted);
+  WriteImageToFile(output_path + "/test_image_magnitude_shifted.pgm", img_mag_shifted);
+  // WriteImageToFile(output_path + "\\test_image_magnitude_shifted.pgm", img_mag);
+
+
+
+  // ImageType tes1_r, tes1_i;
+  // tes1_r.CopyImageData(img_real);
+  // tes1_i.CopyImageData(img_imag);
+  // shiftToCenter(TEST_SIZE, TEST_SIZE, tes1_r, 0); // 0 for image, 1 for FT
+  // fft2D(TEST_SIZE, TEST_SIZE, tes1_r, tes1_i, -1);
+  // computeMagnitude(TEST_SIZE, TEST_SIZE, tes1_r, tes1_i, img_mag_shifted);
+  // stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_shifted);
+  // WriteImageToFile(output_path + "/test_image_magnitude_shifted.pgm", img_mag_shifted);
+  // // WriteImageToFile(output_path + "\\test_image_magnitude_shifted.pgm", img_mag);
+
+
+
+
+  stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag);
+  WriteImageToFile(output_path + "/test_image_magnitude_stretched.pgm", img_mag);
+  // WriteImageToFile(output_path + "\\test_image_magnitude_stretched.pgm", img_mag);
+
+  shiftToCenter(TEST_SIZE, TEST_SIZE, img_mag, 1); // undo centering
+
   //backward t
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, 1);
+
   WriteImageToFile(output_path + "/test_image_fwd_bck_transformed.pgm", img_real);
+  // WriteImageToFile(output_path + "\\test_image_fwd_bck_transformed.pgm", img_real);
 
 
   // Test using input file: ////////////////////////////////////////////////
@@ -275,15 +326,15 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
 	std::cout << "Writing DFT values as .csv files in directory: " << filepath << "\n";
 
   std::ofstream os;
-  os.open (filepath + "/DFT_Real.csv");
+  os.open (filepath + "\\DFT_Real.csv");
   for (int i = 1; i < SIZE; i = i + 2)
     os << arr[i] << "\n";
   os.close();
-  os.open (filepath + "/DFT_Imaginary.csv");
+  os.open (filepath + "\\DFT_Imaginary.csv");
   for (int i = 2; i < SIZE; i = i + 2)
     os << arr[i] << "\n";
   os.close();
-  os.open (filepath + "/DFT_Magnitude.csv");
+  os.open (filepath + "\\DFT_Magnitude.csv");
   int i = 1;
   while (i < SIZE)
   {
@@ -294,7 +345,7 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
     os << "\n";
   }
   os.close();
-  os.open (filepath + "/DFT_Phase.csv");
+  os.open (filepath + "\\DFT_Phase.csv");
   i = 1;
   while (i < SIZE)
   {
@@ -508,6 +559,107 @@ int ProcessTestImages(int argc, char** argv)
   }
   
   return 0;
+}
+
+
+void computeMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag)
+{   // PRE: 2D FFT has been computed with i_real and i_imag
+    // POST: Magnitude (sqrt of R^2 and I^2) is calculated and saved into i_mag
+
+    double mag, real, imag;
+
+    // Compute magnitude
+    for (int i = 0; i < M; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            i_real.getPixelVal(i, j, real);
+            i_imag.getPixelVal(i, j, imag);
+            mag = sqrt(pow(real, 2) + pow(imag, 2));
+            // F|u, v| = sqrt (R^2 (u, v) + I^2 (u, v))
+
+            i_mag.setPixelVal(i, j, mag);
+        }
+    }
+}
+
+
+void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign)
+{   // PRE: 2D FFT has been computed with i_real and i_imag
+    // POST: Magnitude (sqrt of R^2 and I^2) is calculated and shifted to center of freq. domain (or inverse if applied twice)
+    if (isign == 0)
+    {   // f(x, y) * -1^(x + y)
+        double pixelVal, newPixelVal;
+
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < M; j++)
+            {
+                image.getPixelVal(i, j, pixelVal);
+                newPixelVal = pixelVal * pow(-1, (i + j));
+                image.setPixelVal(i, j, newPixelVal);
+            }
+        }
+    }
+    else
+    {   
+        // TODO: Get this branch to work. Indicies seem to be going out-of-bounds but clamping them does not seem to help.
+        
+        // |F(u - N/2, v - N/2)|
+        ImageType temp;
+        temp.CopyImageData(image);
+
+        double mag;
+        int newRowIndex, newColIndex, horzFactor, vertFactor;
+
+        horzFactor = (M / 2) - 1;
+        vertFactor = (N / 2) - 1;
+
+        for (int u = 0; u < N; u++)
+        {
+            for (int v = 0; v < N; v++)
+            {
+                temp.getPixelVal(u, v, mag);
+
+                // Get new indices and check for out-of-bounds errors
+                //newIndexHorz = u - horzFactor;
+                newRowIndex = u - horzFactor; if(newRowIndex < 0) newRowIndex = M + newRowIndex;
+                newColIndex = v - vertFactor; if(newColIndex < 0) newColIndex = N + newColIndex;
+                //newIndexHorz = ClampPxVal((u - horzFactor), 0, N);
+                //newIndexVert = ClampPxVal((v - vertFactor), 0, M);
+
+                // if (u < 5 && v < 5)
+                    // std::cout << "Row: " << newRowIndex << ", Col: " << newColIndex << "\n";
+
+                image.setPixelVal(newRowIndex, newColIndex, mag);
+            }
+        }
+    } //end if-else
+}
+
+void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag)
+{
+    double mag, new_mag;
+    double gain = 75;
+
+    for (int u = 0; u < M; u++)
+    {
+        for (int v = 0; v < N; v++)
+        {
+            // |D(u, v)| = c * log (1 + |F(u, v)|), where c = 1
+            i_mag.getPixelVal(u, v, mag);
+            new_mag = gain * log10(1 + mag);
+
+            //naive clamp
+            if(new_mag < 0) new_mag = 0;
+            if(new_mag > 255) new_mag = 255;
+
+            i_mag.setPixelVal(u, v, new_mag);
+        }
+    }
+
+    i_mag.RemapPixelValues();
+    // re-scale |D(u, v)| to range [0, 255]
 }
 
 #undef SWAP
