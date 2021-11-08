@@ -49,7 +49,7 @@ int main(int argc, char** argv)
   //Test using generated test image ////////////////////////////////////////////////
 
   const int TEST_SIZE = 512;
-  int whiteSquare = 32;
+  int whiteSquare = 128;
 
   
   double** testImage;
