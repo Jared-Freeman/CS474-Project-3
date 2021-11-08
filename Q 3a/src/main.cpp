@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstring>
 #include <map>
-//#include <math.h>
 
 #include "image.h"
 #include "WriteImage.h"
@@ -31,8 +30,6 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath);
 
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
 void computeMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag);
-void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign);
-void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag);
 
 void zeroPhase(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag);
 
@@ -84,9 +81,6 @@ int main(int argc, char** argv)
 
     //backward t
     fft2D(N, M, img_real, img_imag, 1);
-
-    // img_real.RemapPixelValues();
-
     WriteImageToFile(output_path + "/lenna_zeroPhase.pgm", img_real);
 
     // Test using input file: ////////////////////////////////////////////////
@@ -110,8 +104,6 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
     //compute rows
     for (int i = 0; i < N; i++)
     {
-        // std::cout << i << std::endl;
-
         //load values into work array
         double* ptr_r = arr;
         ptr_r += 1;
@@ -121,18 +113,8 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
             i_real.getPixelVal(i, j, real);
             i_imag.getPixelVal(i, j, imag);
 
-            // *ptr_r = (double)real;
-            // ptr_r += 2;
             arr[k] = real;
             arr[l] = imag;
-
-            // if(i==255) std::cout << real << " ";
-            // if(i == 255 && j==N-1)
-            // {
-            //   for(int b=0; b<50; b++) {std::cout << arr[b] << " ";}
-            //   printArrayReal(arr, SIZE);
-            //   printArrayImag(arr, SIZE);
-            // }
         }
 
         //compute dft (row)
@@ -151,12 +133,9 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
             i_real.setPixelVal(i, j, real);
             i_imag.setPixelVal(i, j, imag);
         }
-
-
         //clear work array    
         for (int k = 0; k < SIZE; k++) arr[k] = 0;
     }
-
 
     //compute columns
     for (int j = 0; j < M; j++)
@@ -178,17 +157,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
 
         //compute dft (column)
         fft(arr, N, isign);
-
-
-        // if(i==255) std::cout << real << " ";
-        // if(true)
-        // {
-        //   printArrayReal(arr, SIZE);
-        //   printArrayImag(arr, SIZE);
-        //   std::cout << std::endl;
-        // }
-
-
+        
       //copy values back into image col   
         for (int i = 0; i < N; i++)
         {
@@ -202,43 +171,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
         for (int k = 0; k < SIZE; k++) arr[k] = 0;
     }
 
-
     return;
-
-    //TODO: reenable
-    if (isign < 0)
-    {
-        for (int i = 0; i < N; i++)
-        {
-            //clear work array
-            for (int k = 0; k < SIZE; k++) arr[k] = 0;
-
-            //copy into work array
-            for (int j = 0; j < M; j++)
-            {
-                double real, imag;
-                real = arr[2 * j + 1];
-                imag = arr[2 * j + 2];
-                i_real.setPixelVal(i, j, real);
-                i_imag.setPixelVal(i, j, imag);
-            }
-
-            //normalize
-            normalizeArray(arr, N * M, SIZE);
-
-            //copy back into image storage
-            for (int j = 0; j < M; j++)
-            {
-                double real, imag;
-                real = arr[2 * j + 1];
-                imag = arr[2 * j + 2];
-                i_real.setPixelVal(i, j, real);
-                i_imag.setPixelVal(i, j, imag);
-            }
-        }
-    }
-
-    delete[] arr;
 }
 
 void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
@@ -275,22 +208,6 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
         os << "\n";
     }
     os.close();
-}
-
-void printArrayReal(double arr[], int SIZE)
-{
-    std::cout << "Array, real components: \n";
-    for (int i = 1; i < SIZE; i = i + 2)
-        std::cout << arr[i] << " ";
-    std::cout << "\n\n";
-}
-
-void printArrayImag(double arr[], int SIZE)
-{
-    std::cout << "Array, imagninary components: \n";
-    for (int i = 2; i < SIZE; i = i + 2)
-        std::cout << arr[i] << " ";
-    std::cout << "\n\n";
 }
 
 void fft(double data[], unsigned long nn, int isign)
@@ -498,76 +415,6 @@ void computeMagnitude(unsigned int N, unsigned int M, ImageType& i_real, ImageTy
             i_mag.setPixelVal(i, j, mag);
         }
     }
-}
-
-
-void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign)
-{   // PRE: 2D FFT has been computed with i_real and i_imag
-    // POST: Magnitude (sqrt of R^2 and I^2) is calculated and shifted to center of freq. domain (or inverse if applied twice)
-    if (isign == 0)
-    {   // f(x, y) * -1^(x + y)
-        double pixelVal, newPixelVal;
-
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = 0; j < M; j++)
-            {
-                image.getPixelVal(i, j, pixelVal);
-                newPixelVal = pixelVal * pow(-1, (i + j));
-                image.setPixelVal(i, j, newPixelVal);
-            }
-        }
-    }
-    else
-    {
-        // TODO: Get this branch to work. Indicies seem to be going out-of-bounds but clamping them does not seem to help.
-
-        // |F(u - N/2, v - N/2)|
-        ImageType temp;
-        temp.CopyImageData(image);
-
-        double mag;
-        int newRowIndex, newColIndex, horzFactor, vertFactor;
-
-        horzFactor = ((M / 2) % M) - 1;
-        vertFactor = (N / 2) - 1;
-
-        for (int u = 0; u < N; u++)
-        {
-            for (int v = 0; v < N; v++)
-            {
-                temp.getPixelVal(u, v, mag);
-
-                // Get new indices and check for out-of-bounds errors
-                //newIndexHorz = u - horzFactor;
-                newRowIndex = u - ((M / 2) % M);
-                newColIndex = v - ((N / 2) % N);
-                //newIndexHorz = ClampPxVal((u - horzFactor), 0, N);
-                //newIndexVert = ClampPxVal((v - vertFactor), 0, M);
-
-                //image.setPixelVal(newRowIndex, newColIndex, mag);
-            }
-        }
-    } //end if-else
-}
-
-void stretchMagnitude(unsigned int N, unsigned int M, ImageType& i_mag)
-{
-    double mag, new_mag;
-
-    for (int u = 0; u < M; u++)
-    {
-        for (int v = 0; v < N; v++)
-        {
-            // |D(u, v)| = c * log (1 + |F(u, v)|), where c = 1
-            i_mag.getPixelVal(u, v, mag);
-            new_mag = log10(1 + mag);
-            i_mag.setPixelVal(u, v, new_mag);
-        }
-    }
-
-    i_mag.RemapPixelValues();
-    // re-scale |D(u, v)| to range [0, 255]
 }
 
 void zeroPhase(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, ImageType& i_mag)
