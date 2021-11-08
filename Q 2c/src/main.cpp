@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstring>
 #include <map>
-//#include <math.h>
 
 #include "image.h"
 #include "WriteImage.h"
@@ -18,8 +17,6 @@
 bool FLAG_DEBUG = true;
 
 std::string output_path = "../images";
-// std::string output_path = "C:\\Users\\Adam\\source\\repos\\CS474-Project-3\\Q 2a\\images";
-// std::string image_input_path = "../images/";
 
 int ClampPxVal(int val, int lo, int hi);
 void WriteImageToFile(std::string filename, ImageType& img);
@@ -28,10 +25,7 @@ void generateTestImage(int size, double** arr, int innerSize);
 int ProcessTestImages(int argc, char** argv);
 
 void fft(double data[], unsigned long nn, int isign);
-void printArrayReal(double arr[], int SIZE);
-void printArrayImag(double arr[], int SIZE);
 void normalizeArray(double arr[], int valCount, int size);
-void printMagnitude(double arr[], int size);
 void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath);
 
 void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag, int isign);
@@ -51,7 +45,6 @@ int main(int argc, char** argv)
   const int TEST_SIZE = 512;
   int whiteSquare = 128;
 
-  
   double** testImage;
   testImage = new double* [TEST_SIZE];
 
@@ -88,56 +81,30 @@ int main(int argc, char** argv)
   img_mag.CopyImageData(img_real);
 
   WriteImageToFile(output_path + "/test_image_raw.pgm", img_real);
-  // WriteImageToFile(output_path + "\\test_image_raw.pgm", img_real);
+
   //2d ffts:
   //forward t
-  //shiftToCenter(TEST_SIZE, TEST_SIZE, img_real, img_imag, img_mag, 0); // 0 for image, 1 for FT
-
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, -1);
   WriteImageToFile(output_path + "/test_image_real_frequency_domain.pgm", img_real);
-  // WriteImageToFile(output_path + "\\test_image_real_frequency_domain.pgm", img_real);
 
-  
   computeMagnitude(TEST_SIZE, TEST_SIZE, img_real, img_imag, img_mag);
   ImageType img_mag_2;
   img_mag_2.CopyImageData(img_mag);
-  // stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_2);
   WriteImageToFile(output_path + "/test_image_magnitude_raw.pgm", img_mag_2);
-  // WriteImageToFile(output_path + "\\test_image_magnitude_raw.pgm", img_mag);
 
   img_mag_shifted.CopyImageData(img_mag);
   shiftToCenter(TEST_SIZE, TEST_SIZE, img_mag_shifted, 1); // 0 for image, 1 for FT
   stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_shifted);
   WriteImageToFile(output_path + "/test_image_magnitude_shifted.pgm", img_mag_shifted);
-  // WriteImageToFile(output_path + "\\test_image_magnitude_shifted.pgm", img_mag);
-
-
-
-  // ImageType tes1_r, tes1_i;
-  // tes1_r.CopyImageData(img_real);
-  // tes1_i.CopyImageData(img_imag);
-  // shiftToCenter(TEST_SIZE, TEST_SIZE, tes1_r, 0); // 0 for image, 1 for FT
-  // fft2D(TEST_SIZE, TEST_SIZE, tes1_r, tes1_i, -1);
-  // computeMagnitude(TEST_SIZE, TEST_SIZE, tes1_r, tes1_i, img_mag_shifted);
-  // stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag_shifted);
-  // WriteImageToFile(output_path + "/test_image_magnitude_shifted.pgm", img_mag_shifted);
-  // // WriteImageToFile(output_path + "\\test_image_magnitude_shifted.pgm", img_mag);
-
-
-
-
+  
   stretchMagnitude(TEST_SIZE, TEST_SIZE, img_mag);
   WriteImageToFile(output_path + "/test_image_magnitude_stretched.pgm", img_mag);
-  // WriteImageToFile(output_path + "\\test_image_magnitude_stretched.pgm", img_mag);
 
   shiftToCenter(TEST_SIZE, TEST_SIZE, img_mag, 1); // undo centering
 
   //backward t
   fft2D(TEST_SIZE, TEST_SIZE, img_real, img_imag, 1);
-
   WriteImageToFile(output_path + "/test_image_fwd_bck_transformed.pgm", img_real);
-  // WriteImageToFile(output_path + "\\test_image_fwd_bck_transformed.pgm", img_real);
-
 
   // Test using input file: ////////////////////////////////////////////////
   ProcessTestImages(argc, argv);
@@ -160,8 +127,6 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
   //compute rows
   for(int i=0; i<N; i++)
   {
-    // std::cout << i << std::endl;
-
     //load values into work array
     double* ptr_r = arr;
     ptr_r += 1;
@@ -171,18 +136,8 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
       i_real.getPixelVal(i,j,real); 
       i_imag.getPixelVal(i,j,imag);
 
-      // *ptr_r = (double)real;
-      // ptr_r += 2;
       arr[k] = real;
       arr[l] = imag;
-
-      // if(i==255) std::cout << real << " ";
-      // if(i == 255 && j==N-1)
-      // {
-      //   for(int b=0; b<50; b++) {std::cout << arr[b] << " ";}
-      //   printArrayReal(arr, SIZE);
-      //   printArrayImag(arr, SIZE);
-      // }
     }
 
     //compute dft (row)
@@ -202,11 +157,9 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
       i_imag.setPixelVal(i,j,imag);
     }
 
-
     //clear work array    
     for(int k=0; k<SIZE; k++) arr[k] = 0;
   }
-
 
   //compute columns
   for(int j=0; j<M; j++)
@@ -229,16 +182,6 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
     //compute dft (column)
     fft(arr, N, isign);
 
-
-      // if(i==255) std::cout << real << " ";
-      // if(true)
-      // {
-      //   printArrayReal(arr, SIZE);
-      //   printArrayImag(arr, SIZE);
-      //   std::cout << std::endl;
-      // }
-
-
     //copy values back into image col   
     for(int i=0; i<N; i++) 
     {
@@ -252,43 +195,7 @@ void fft2D(unsigned int N, unsigned int M, ImageType& i_real, ImageType& i_imag,
     for(int k=0; k<SIZE; k++) arr[k] = 0;
   }
 
-
   return;
-
-  //TODO: reenable
-  if(isign < 0)
-  {
-    for(int i=0; i<N; i++) 
-    {
-      //clear work array
-      for(int k=0; k<SIZE; k++) arr[k] = 0;
-
-      //copy into work array
-      for(int j=0; j<M; j++)
-        {
-        double real, imag;
-        real = arr[2 * j + 1];
-        imag = arr[2 * j + 2];
-        i_real.setPixelVal(i,j,real);
-        i_imag.setPixelVal(i,j,imag);        
-      }
-
-      //normalize
-      normalizeArray(arr, N*M, SIZE);   
-
-      //copy back into image storage
-      for(int j=0; j<M; j++)
-      {
-      double real, imag;
-      real = arr[2 * j + 1];
-      imag = arr[2 * j + 2];
-      i_real.setPixelVal(i,j,real);
-      i_imag.setPixelVal(i,j,imag);
-    }
-    }
-  }
-
-  delete [] arr;
 }
 
 void generateTestImage(int size, double** arr, int innerSize)
@@ -297,17 +204,6 @@ void generateTestImage(int size, double** arr, int innerSize)
   int upperBound = ((size/2) - (innerSize/2));
   int rightBound = ((size/2) + (innerSize/2)) -1;
   int lowerBound = ((size/2) + (innerSize/2)) -1;
-
-  // DEBUG ///////////////////////////////////////////
-  // for(int i=0; i<size; i++)
-  // {
-  //   for (int j = 0; j < size; j++)
-  //   {
-  //     arr[i][j] = 255;
-  //     // std::cout << i << ", " << j << ", val: " ;
-  //     // std::cout << arr[i][j] << " | ";
-  //   }
-  // }
 
   for (int i = 0; i < size; i++)
   {
@@ -355,22 +251,6 @@ void DFT_WriteToCSV(double arr[], int SIZE, std::string filepath)
     os << "\n";
   }
   os.close();
-}
-
-void printArrayReal(double arr[], int SIZE)
-{
-  std::cout << "Array, real components: \n";
-  for (int i = 1; i < SIZE; i = i + 2)
-    std::cout << arr[i] << " ";
-  std::cout << "\n\n";
-}
-
-void printArrayImag(double arr[], int SIZE)
-{
-  std::cout << "Array, imagninary components: \n";
-  for (int i = 2; i < SIZE; i = i + 2)
-    std::cout << arr[i] << " ";
-  std::cout << "\n\n";
 }
 
 void fft(double data[], unsigned long nn, int isign)
@@ -425,22 +305,6 @@ void normalizeArray(double arr[], int valCount, int SIZE)
   for (int i = 0; i < SIZE; i++)
     arr[i] = arr[i] * 1/valCount;
 }
-
-void printMagnitude(double arr[], int size)
-{
-  int i = 1;
-  std::cout << "Magnitude of array: \n";
-  while (i < size)
-  {
-    std::cout << sqrt(pow(arr[i], 2) + pow(arr[i+1], 2)); 
-    // |F(u)| = sqrt (R(u)^2 + I(u)^2)
-
-    i += 2;
-    std::cout << "  ";
-  }
-  std::cout << "\n\n";
-}
-
 
 void WriteImageToFile(std::string filename, ImageType& img)
 {
@@ -525,8 +389,6 @@ int ProcessTestImages(int argc, char** argv)
     {
       if(imagePaths[i][l] != '/')
       {
-        //std::cout << imagePaths[i][l] << std::endl;
-
         std::string temp;
         temp += imagePaths[i][l];
         original_filename.insert(0, temp);
@@ -550,9 +412,6 @@ int ProcessTestImages(int argc, char** argv)
     WriteImageToFile(out_file + "_test_image_fwd_bck_transformed.pgm", next_image);
 
     // END DO STUFF
-
-
-
     delete [] cstr;
 
     std::cout << "\n";
@@ -602,9 +461,7 @@ void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign)
         }
     }
     else
-    {   
-        // TODO: Get this branch to work. Indicies seem to be going out-of-bounds but clamping them does not seem to help.
-        
+    {        
         // |F(u - N/2, v - N/2)|
         ImageType temp;
         temp.CopyImageData(image);
@@ -622,14 +479,8 @@ void shiftToCenter(unsigned int N, unsigned int M, ImageType& image, int isign)
                 temp.getPixelVal(u, v, mag);
 
                 // Get new indices and check for out-of-bounds errors
-                //newIndexHorz = u - horzFactor;
                 newRowIndex = u - horzFactor; if(newRowIndex < 0) newRowIndex = M + newRowIndex;
                 newColIndex = v - vertFactor; if(newColIndex < 0) newColIndex = N + newColIndex;
-                //newIndexHorz = ClampPxVal((u - horzFactor), 0, N);
-                //newIndexVert = ClampPxVal((v - vertFactor), 0, M);
-
-                // if (u < 5 && v < 5)
-                    // std::cout << "Row: " << newRowIndex << ", Col: " << newColIndex << "\n";
 
                 image.setPixelVal(newRowIndex, newColIndex, mag);
             }
