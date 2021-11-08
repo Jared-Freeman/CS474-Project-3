@@ -17,7 +17,7 @@
 
 bool FLAG_DEBUG = true;
 
-std::string image_input_path = "../images/";
+std::string output_path = "../images";
 
 int ClampPxVal(int val, int lo, int hi);
 void WriteImageToFile(std::string filename, ImageType& img);
@@ -84,6 +84,8 @@ int main(int argc, char** argv)
 
     //backward t
     fft2D(N, M, img_real, img_imag, 1);
+
+    // img_real.RemapPixelValues();
 
     WriteImageToFile(output_path + "/lenna_zeroPhase.pgm", img_real);
 
